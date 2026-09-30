@@ -1,0 +1,49 @@
+@host = http://localhost:8080
+
+### Cadastrar tutor
+POST {{host}}/tutors
+Content-Type: application/json
+
+{
+  "name": "Marina Lopes",
+  "email": "marina@example.com",
+  "document": "12345678901",
+  "phone": "11999990000"
+}
+
+### Cadastrar pet
+POST {{host}}/pets
+Content-Type: application/json
+
+{
+  "tutorId": 1,
+  "name": "Thor",
+  "species": "DOG",
+  "ageInYears": 4
+}
+
+### Listar veterinários
+GET {{host}}/veterinarians
+
+### Agendar consulta (ajuste a data para o futuro)
+POST {{host}}/appointments
+Content-Type: application/json
+
+{
+  "petId": 1,
+  "veterinarianId": 1,
+  "scheduledAt": "2030-03-12T10:00:00",
+  "emergency": false
+}
+
+### Consultar consulta
+GET {{host}}/appointments/1
+
+### Agenda do veterinário no dia
+GET {{host}}/appointments?veterinarianId=1&date=2030-03-12
+
+### Cancelar consulta
+POST {{host}}/appointments/1/cancel
+
+### Concluir consulta
+POST {{host}}/appointments/1/complete?notes=Vacina%20aplicada
