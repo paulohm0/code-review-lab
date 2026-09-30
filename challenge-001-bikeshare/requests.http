@@ -1,0 +1,34 @@
+@host = http://localhost:8080
+
+### Cadastrar bicicleta
+POST {{host}}/bikes
+Content-Type: application/json
+
+{
+  "model": "Caloi 10"
+}
+
+### Cadastrar cliente
+POST {{host}}/customers
+Content-Type: application/json
+
+{
+  "name": "Ana Souza",
+  "email": "ana@example.com",
+  "password": "senha1234"
+}
+
+### Iniciar aluguel (use os ids retornados acima)
+POST {{host}}/rentals
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "bikeId": 1
+}
+
+### Devolver bicicleta
+POST {{host}}/rentals/1/return
+
+### Consultar aluguel
+GET {{host}}/rentals/1
