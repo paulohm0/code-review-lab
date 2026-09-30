@@ -1,6 +1,7 @@
 package com.example.bikeshare.service;
 
 import com.example.bikeshare.domain.Customer;
+import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

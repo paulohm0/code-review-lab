@@ -2,6 +2,7 @@ package com.example.bikeshare.service;
 
 import com.example.bikeshare.domain.Bike;
 import com.example.bikeshare.domain.BikeStatus;
+import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.repository.BikeRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
