@@ -8,6 +8,8 @@ import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.repository.BikeRepository;
 import com.example.bikeshare.repository.CustomerRepository;
 import com.example.bikeshare.repository.RentalRepository;
+
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -22,15 +24,22 @@ public class RentalService {
     private final BikeRepository bikeRepository;
     private final CustomerRepository customerRepository;
     private final NotificationService notificationService;
+    private final Clock clock;
+
+    private static final double HOURLY_RATE = 5.0;
+    private static final double MINIMUM_CHARGE = 5.0;
+    private static final double SECONDS_PER_HOUR = 3600.0;
 
     public RentalService(RentalRepository rentalRepository,
                          BikeRepository bikeRepository,
                          CustomerRepository customerRepository,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         Clock clock) {
         this.rentalRepository = rentalRepository;
         this.bikeRepository = bikeRepository;
         this.customerRepository = customerRepository;
         this.notificationService = notificationService;
+        this.clock = clock;
     }
 
     @Transactional
@@ -44,7 +53,7 @@ public class RentalService {
         }
 
         bike.setStatus(BikeStatus.RENTED);
-        return rentalRepository.save(new Rental(bike, customer, LocalDateTime.now()));
+        return rentalRepository.save(new Rental(bike, customer, LocalDateTime.now(clock)));
     }
 
     @Transactional
@@ -54,9 +63,9 @@ public class RentalService {
             throw new IllegalStateException("Aluguel já foi finalizado: " + rentalId);
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        long minutes = Duration.between(rental.getStartedAt(), now).toMinutes();
-        double total = Math.max(5.0, Math.ceil(minutes / 60.0) * 5.0);
+        LocalDateTime now = LocalDateTime.now(clock);
+        long seconds = Duration.between(rental.getStartedAt(), now).toSeconds();
+        double total = Math.max(MINIMUM_CHARGE, Math.ceil(seconds / SECONDS_PER_HOUR) * HOURLY_RATE);
 
         rental.finish(now, total);
         rental.getBike().setStatus(BikeStatus.AVAILABLE);

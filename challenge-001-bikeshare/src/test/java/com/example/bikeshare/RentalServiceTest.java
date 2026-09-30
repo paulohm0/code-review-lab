@@ -9,7 +9,12 @@ import com.example.bikeshare.repository.CustomerRepository;
 import com.example.bikeshare.repository.RentalRepository;
 import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.service.RentalService;
+
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,12 +22,25 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
 import static org.assertj.core.api.Assertions.within;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 class RentalServiceTest {
+
+    @TestConfiguration
+    static class FixedClockConfig {
+        @Bean
+        @Primary
+        Clock fixedClock() {
+            return Clock.fixed(Instant.parse("2026-01-01T10:00:00Z"), ZoneOffset.UTC);
+        }
+    }
 
     @Autowired
     RentalService rentalService;
@@ -36,6 +54,9 @@ class RentalServiceTest {
     @Autowired
     CustomerRepository customerRepository;
 
+    @Autowired
+    Clock clock;
+
     Customer customer;
     Bike bike;
 
@@ -48,9 +69,9 @@ class RentalServiceTest {
         bike = bikeRepository.save(new Bike("Caloi 10"));
     }
 
-    private Rental rentalStartedMinutesAgo(long minutes) {
+    private Rental rentalStartedSecondsAgo(long seconds) {
         return rentalRepository.save(
-                new Rental(bike, customer, LocalDateTime.now().minusMinutes(minutes)));
+                new Rental(bike, customer, LocalDateTime.now(clock).minusSeconds(seconds)));
     }
 
     @Nested
@@ -110,19 +131,18 @@ class RentalServiceTest {
                     .isInstanceOf(NotFoundException.class);
         }
 
-        @ParameterizedTest(name = "{0} min → R$ {1}")
+        @ParameterizedTest(name = "{0} sec → R$ {1}")
         @CsvSource({
-                "0,   5.0",
-                "30,  5.0",
-                "59,  5.0",
-                "60,  5.0",
-                "61,  10.0",
-                "90,  10.0",
-                "120, 10.0",
-                "125, 15.0"
+                "0,     5.0",
+                "1,     5.0",
+                "3599,  5.0",
+                "3600,  5.0",
+                "3601,  10.0",
+                "7200,  10.0",
+                "7201,  15.0"
         })
-        void finishChargesByStartedHour(long minutes, double expectedPrice) {
-            Rental rental = rentalStartedMinutesAgo(minutes);
+        void finishChargesByStartedHour(long seconds, double expectedPrice) {
+            Rental rental = rentalStartedSecondsAgo(seconds);
 
             Rental finished = rentalService.finish(rental.getId());
 
