@@ -4,11 +4,13 @@ import com.example.bikeshare.domain.Bike;
 import com.example.bikeshare.domain.BikeStatus;
 import com.example.bikeshare.domain.Customer;
 import com.example.bikeshare.domain.Rental;
+import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.repository.BikeRepository;
 import com.example.bikeshare.repository.CustomerRepository;
 import com.example.bikeshare.repository.RentalRepository;
 import java.time.Duration;
 import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

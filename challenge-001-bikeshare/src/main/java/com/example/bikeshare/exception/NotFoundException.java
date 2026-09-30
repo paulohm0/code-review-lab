@@ -1,4 +1,4 @@
-package com.example.bikeshare.service;
+package com.example.bikeshare.exception;
 
 public class NotFoundException extends RuntimeException {
 

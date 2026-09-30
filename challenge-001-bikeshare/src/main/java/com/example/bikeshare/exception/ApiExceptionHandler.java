@@ -1,6 +1,5 @@
-package com.example.bikeshare.web;
+package com.example.bikeshare.exception;
 
-import com.example.bikeshare.service.NotFoundException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

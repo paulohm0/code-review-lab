@@ -10,7 +10,7 @@ import com.example.bikeshare.domain.Rental;
 import com.example.bikeshare.repository.BikeRepository;
 import com.example.bikeshare.repository.CustomerRepository;
 import com.example.bikeshare.repository.RentalRepository;
-import com.example.bikeshare.service.NotFoundException;
+import com.example.bikeshare.exception.NotFoundException;
 import com.example.bikeshare.service.RentalService;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
