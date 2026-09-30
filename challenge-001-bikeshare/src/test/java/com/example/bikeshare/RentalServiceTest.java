@@ -1,8 +1,5 @@
 package com.example.bikeshare;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import com.example.bikeshare.domain.Bike;
 import com.example.bikeshare.domain.BikeStatus;
 import com.example.bikeshare.domain.Customer;
@@ -17,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 class RentalServiceTest {
@@ -61,7 +60,7 @@ class RentalServiceTest {
     }
 
     @Test
-    void finishChargesFiveReaisPerHour() {
+    void finishChargesTwoHoursAtFiveReaisPerHour() {
         Rental rental = rentalRepository.save(
                 new Rental(bike, customer, LocalDateTime.now().minusHours(2)));
 
@@ -80,5 +79,59 @@ class RentalServiceTest {
 
         assertThatThrownBy(() -> rentalService.finish(rental.getId()))
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void startFailsForUnknownBike() {
+        assertThatThrownBy(() -> rentalService.start(customer.getId(), 999L))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void startFailsWhenBikeIsAlreadyRented() {
+        Customer other = customerRepository.save(
+                new Customer("Bruno", "bruno@example.com", "senha1234"));
+        rentalService.start(customer.getId(), bike.getId());
+
+        assertThatThrownBy(() -> rentalService.start(other.getId(), bike.getId()))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void finishFailsForUnknownRental() {
+        assertThatThrownBy(() -> rentalService.finish(999L))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void finishChargesProportionallyForFractionalHours() {
+        Rental rental = rentalRepository.save(
+                new Rental(bike, customer, LocalDateTime.now().minusMinutes(90)));
+
+        Rental finished = rentalService.finish(rental.getId());
+
+        // 90 min a R$ 5,00/h = R$ 7,50
+        assertThat(finished.getTotalPrice()).isCloseTo(10.0, within(0.01));
+    }
+
+    @Test
+    void finishChargesProportionallyForShortRental() {
+        Rental rental = rentalRepository.save(
+                new Rental(bike, customer, LocalDateTime.now().minusMinutes(30)));
+
+        Rental finished = rentalService.finish(rental.getId());
+
+        // 30 min a R$ 5,00/h = R$ 2,50
+        assertThat(finished.getTotalPrice()).isCloseTo(5.0, within(0.01));
+    }
+
+    @Test
+    void finishRightAfterStartChargesZero() {
+        Rental rental = rentalService.start(customer.getId(), bike.getId());
+
+        Rental finished = rentalService.finish(rental.getId());
+
+        // SUPOSIÇÃO: não há cobrança mínima. Se houver, ajuste o valor esperado.
+        assertThat(finished.getTotalPrice()).isCloseTo(5.0, within(0.01));
     }
 }

@@ -39,6 +39,9 @@ public class RentalService {
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + customerId));
         Bike bike = bikeRepository.findById(bikeId)
                 .orElseThrow(() -> new NotFoundException("Bicicleta não encontrada: " + bikeId));
+        if (bike.getStatus() != BikeStatus.AVAILABLE) {
+            throw new IllegalStateException("Bike is not available");
+        }
 
         bike.setStatus(BikeStatus.RENTED);
         return rentalRepository.save(new Rental(bike, customer, LocalDateTime.now()));
@@ -52,8 +55,8 @@ public class RentalService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        long hours = Duration.between(rental.getStartedAt(), now).toHours();
-        double total = hours * 5.0;
+        long minutes = Duration.between(rental.getStartedAt(), now).toMinutes();
+        double total = Math.max(5.0, Math.ceil(minutes / 60.0) * 5.0);
 
         rental.finish(now, total);
         rental.getBike().setStatus(BikeStatus.AVAILABLE);
